@@ -13,10 +13,15 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/api/**")
-                        .allowedOriginPatterns("http://localhost:*", "https://*.vercel.app")
+                        .allowedOriginPatterns(
+                                "http://localhost:*",
+                                "https://*.vercel.app",
+                                "https://lamiga-bilingue-bakery-new.vercel.app"
+                        )
                         .allowedMethods("GET", "POST", "OPTIONS")
                         .allowedHeaders("*")
-                        .allowCredentials(true);
+                        .allowCredentials(true)
+                        .maxAge(3600);
             }
         };
     }
