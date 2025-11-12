@@ -1,6 +1,21 @@
-const API_BASE =
-  (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim().replace(/\/$/, '')) ||
-  'http://localhost:8081';
+// Получаем базовый URL и исправляем возможные ошибки
+const getApiBase = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (!envUrl) return 'http://localhost:8081';
+  
+  let url = envUrl.trim().replace(/\/$/, '');
+  
+  // Исправляем распространённую ошибку: дефис в начале домена
+  // la-miga-bilingue-bakery-2.onrender.com -> lamiga-bilingue-bakery-2.onrender.com
+  if (url.includes('la-miga-bilingue-bakery-2.onrender.com')) {
+    url = url.replace('la-miga-bilingue-bakery-2.onrender.com', 'lamiga-bilingue-bakery-2.onrender.com');
+    console.warn('[API] Fixed incorrect URL: removed hyphen from domain start');
+  }
+  
+  return url;
+};
+
+const API_BASE = getApiBase();
 
 const buildUrl = (path: string) => {
   const url = `${API_BASE}${path}`;
