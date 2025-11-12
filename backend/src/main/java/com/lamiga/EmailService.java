@@ -46,20 +46,20 @@ public class EmailService {
             SimpleMailMessage mailMessage = new SimpleMailMessage();
             mailMessage.setFrom(fromEmail);
             mailMessage.setTo(toEmail);
-            mailMessage.setSubject("Новое сообщение с сайта La Miga от " + name);
+            mailMessage.setSubject("New message from La Miga website from " + name);
             mailMessage.setText(
-                    "Новое сообщение с формы обратной связи:\n\n" +
-                    "Имя: " + name + "\n" +
+                    "New message from contact form:\n\n" +
+                    "Name: " + name + "\n" +
                     "Email: " + email + "\n" +
-                    "Сообщение:\n" + message + "\n\n" +
+                    "Message:\n" + message + "\n\n" +
                     "---\n" +
-                    "Ответить: " + email
+                    "Reply to: " + email
             );
             mailSender.send(mailMessage);
             log.info("Email successfully sent to {} for contact from {}", toEmail, email);
         } catch (Exception e) {
             log.error("Failed to send email to {}: {}", toEmail, e.getMessage(), e);
-            // Не пробрасываем исключение, чтобы не ломать сохранение в файл
+            // Don't throw exception to avoid breaking file saving
         }
     }
 }

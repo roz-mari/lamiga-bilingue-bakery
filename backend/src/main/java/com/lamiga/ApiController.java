@@ -10,16 +10,13 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -39,14 +36,9 @@ public class ApiController {
 
     @GetMapping("/products")
     public ResponseEntity<List<Product>> products() {
-        try {
-            List<Product> products = service.all();
-            log.info("Products requested, returning {} items", products.size());
-            return ResponseEntity.ok(products);
-        } catch (Exception e) {
-            log.error("Error fetching products", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
+        List<Product> products = service.all();
+        log.info("Products requested, returning {} items", products.size());
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/health")
@@ -65,29 +57,19 @@ public class ApiController {
     ) {}
 
     @PostMapping("/contact")
-    public ResponseEntity<Map<String, Object>> contact(@Valid @RequestBody ContactDTO dto) {
-        try {
-            log.info("Contact form submission from: {} ({})", dto.name(), dto.email());
-            
-            // Сохраняем в файл (backup)
-            saveToFile(dto);
-            
-            // Отправляем на email (если настроено)
-            emailService.sendContactForm(dto.name(), dto.email(), dto.message());
-            
-            log.info("Contact form processed successfully for: {}", dto.email());
-            return ResponseEntity.ok(Map.of("ok", true, "message", "Message received successfully"));
-        } catch (IOException e) {
-            log.error("Error saving contact form to file", e);
-            // Пытаемся отправить email даже если файл не сохранился
-            emailService.sendContactForm(dto.name(), dto.email(), dto.message());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("ok", false, "error", "Failed to save message"));
-        } catch (Exception e) {
-            log.error("Unexpected error processing contact form", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("ok", false, "error", "Internal server error"));
-        }
+    public ResponseEntity<Map<String, Object>> contact(@Valid @RequestBody ContactDTO dto) throws IOException {
+        log.info("Contact form submission from: {} ({})", dto.name(), dto.email());
+        
+        // Save to file (backup)
+        // IOException will be handled by GlobalExceptionHandler
+        saveToFile(dto);
+        
+        // Send email (if configured)
+        // EmailService doesn't throw exceptions to avoid breaking file saving
+        emailService.sendContactForm(dto.name(), dto.email(), dto.message());
+        
+        log.info("Contact form processed successfully for: {}", dto.email());
+        return ResponseEntity.ok(Map.of("ok", true, "message", "Message received successfully"));
     }
 
     private void saveToFile(ContactDTO dto) throws IOException {
@@ -111,12 +93,5 @@ public class ApiController {
                     .replace("\n", "\\n")
                     .replace("\r", "\\r")
                     .replace("\t", "\\t");
-    }
-
-    @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationException(ConstraintViolationException e) {
-        log.warn("Validation error: {}", e.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("ok", false, "error", "Validation failed", "details", e.getMessage()));
     }
 }

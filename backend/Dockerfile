@@ -2,7 +2,7 @@
 FROM gradle:8.10.2-jdk21 AS builder
 WORKDIR /app
 COPY . .
-# Обязательно делаем gradlew исполняемым, иначе внутри контейнера команда не запустится
+# Make gradlew executable, otherwise the command won't run inside the container
 RUN chmod +x gradlew
 RUN ./gradlew bootJar -x test
 
