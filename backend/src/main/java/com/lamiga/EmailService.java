@@ -4,11 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 @Service
+@ConditionalOnBean(JavaMailSender.class)
 public class EmailService {
 
     private static final Logger log = LoggerFactory.getLogger(EmailService.class);
@@ -25,14 +27,14 @@ public class EmailService {
             @Value("${contact.email.enabled:false}") boolean enabled
     ) {
         this.mailSender = mailSender;
-        this.toEmail = toEmail;
-        this.fromEmail = fromEmail;
-        this.enabled = (mailSender != null) && enabled && !toEmail.isEmpty() && !fromEmail.isEmpty();
+        this.toEmail = toEmail != null ? toEmail.trim() : "";
+        this.fromEmail = fromEmail != null ? fromEmail.trim() : "";
+        this.enabled = (mailSender != null) && enabled && !this.toEmail.isEmpty() && !this.fromEmail.isEmpty();
         
         if (this.enabled) {
-            log.info("EmailService initialized: emails will be sent to {}", toEmail);
+            log.info("EmailService initialized: emails will be sent to {}", this.toEmail);
         } else {
-            log.info("EmailService initialized: email sending is disabled. Configure CONTACT_EMAIL_ENABLED, CONTACT_EMAIL_TO, CONTACT_EMAIL_FROM to enable");
+            log.info("EmailService initialized: email sending is disabled. Configure CONTACT_EMAIL_ENABLED, CONTACT_EMAIL_TO, CONTACT_EMAIL_FROM, and spring.mail.* properties to enable");
         }
     }
 

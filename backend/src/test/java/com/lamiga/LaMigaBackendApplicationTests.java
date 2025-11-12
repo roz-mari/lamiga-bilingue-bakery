@@ -19,7 +19,7 @@ class LaMigaBackendApplicationTests {
 	static class TestConfig {
 		@Bean
 		@Primary
-		public JavaMailSender javaMailSender() {
+		JavaMailSender javaMailSender() {
 			return mock(JavaMailSender.class);
 		}
 	}

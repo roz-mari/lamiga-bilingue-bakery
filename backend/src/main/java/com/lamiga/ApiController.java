@@ -35,7 +35,10 @@ public class ApiController {
     private final EmailService emailService;
     private final ObjectMapper objectMapper;
 
-    public ApiController(ProductService service, EmailService emailService, ObjectMapper objectMapper) {
+    public ApiController(
+            ProductService service, 
+            @org.springframework.beans.factory.annotation.Autowired(required = false) EmailService emailService,
+            ObjectMapper objectMapper) {
         this.service = service;
         this.emailService = emailService;
         this.objectMapper = objectMapper;
@@ -73,7 +76,9 @@ public class ApiController {
         
         // Send email (if configured)
         // EmailService doesn't throw exceptions to avoid breaking file saving
-        emailService.sendContactForm(dto.name(), dto.email(), dto.message());
+        if (emailService != null) {
+            emailService.sendContactForm(dto.name(), dto.email(), dto.message());
+        }
         
         log.info("Contact form processed successfully for: {}", dto.email());
         return ResponseEntity.ok(Map.of("ok", true, "message", "Message received successfully"));
