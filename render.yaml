@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: lamiga-backend
+    env: docker
+    rootDir: backend
+    plan: free
+    healthCheckPath: /api/products
+    autoDeploy: true
+
+
