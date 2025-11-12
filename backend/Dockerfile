@@ -1,5 +1,5 @@
 # ---- Build stage ----
-FROM gradle:8.10.2-jdk17 AS builder
+FROM gradle:8.10.2-jdk21 AS builder
 WORKDIR /app
 COPY . .
 # Обязательно делаем gradlew исполняемым, иначе внутри контейнера команда не запустится
@@ -7,7 +7,7 @@ RUN chmod +x gradlew
 RUN ./gradlew bootJar -x test
 
 # ---- Runtime stage ----
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 ENV PORT=8080
 EXPOSE 8080
