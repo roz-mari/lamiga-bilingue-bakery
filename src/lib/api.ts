@@ -4,9 +4,8 @@ const API_BASE =
 
 const buildUrl = (path: string) => {
   const url = `${API_BASE}${path}`;
-  if (import.meta.env.DEV) {
-    console.log('[API] Request URL:', url, '| API_BASE:', API_BASE);
-  }
+  // Логируем всегда в продакшене для диагностики
+  console.log('[API] Request URL:', url, '| API_BASE:', API_BASE, '| VITE_API_URL:', import.meta.env.VITE_API_URL || 'NOT SET');
   return url;
 };
 
