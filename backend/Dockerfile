@@ -2,7 +2,8 @@
 FROM gradle:8.10.2-jdk17 AS builder
 WORKDIR /app
 COPY . .
-
+# Обязательно делаем gradlew исполняемым, иначе внутри контейнера команда не запустится
+RUN chmod +x gradlew
 RUN ./gradlew bootJar -x test
 
 # ---- Runtime stage ----
