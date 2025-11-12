@@ -7,7 +7,6 @@ import croissantImg from '@/assets/croissant.jpg';
 import baguetteImg from '@/assets/baguette.jpg';
 import cookieImg from '@/assets/cookie.jpg';
 import cinnamonRollImg from '@/assets/cinnamon-roll.jpg';
-import wholeWheatImg from '@/assets/whole-wheat.jpg';
 import { getProducts, type Product } from '@/lib/api';
 
 const productImages: Record<string, string> = {
@@ -16,7 +15,6 @@ const productImages: Record<string, string> = {
   'Baguette': baguetteImg,
   'Chocolate Chip Cookie': cookieImg,
   'Cinnamon Roll': cinnamonRollImg,
-  'Whole Wheat Bread': wholeWheatImg,
 };
 
 const Products = () => {

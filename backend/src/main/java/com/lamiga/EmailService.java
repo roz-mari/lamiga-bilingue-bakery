@@ -1,5 +1,7 @@
 package com.lamiga;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
@@ -9,6 +11,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EmailService {
 
+    private static final Logger log = LoggerFactory.getLogger(EmailService.class);
     private final JavaMailSender mailSender;
     private final String toEmail;
     private final String fromEmail;
@@ -25,11 +28,17 @@ public class EmailService {
         this.toEmail = toEmail;
         this.fromEmail = fromEmail;
         this.enabled = (mailSender != null) && enabled && !toEmail.isEmpty() && !fromEmail.isEmpty();
+        
+        if (this.enabled) {
+            log.info("EmailService initialized: emails will be sent to {}", toEmail);
+        } else {
+            log.info("EmailService initialized: email sending is disabled. Configure CONTACT_EMAIL_ENABLED, CONTACT_EMAIL_TO, CONTACT_EMAIL_FROM to enable");
+        }
     }
 
     public void sendContactForm(String name, String email, String message) {
         if (!enabled) {
-            System.out.println("[EmailService] Email отправка отключена. Проверьте настройки CONTACT_EMAIL_ENABLED, CONTACT_EMAIL_TO, CONTACT_EMAIL_FROM");
+            log.debug("Email sending skipped: service is disabled");
             return;
         }
 
@@ -47,10 +56,10 @@ public class EmailService {
                     "Ответить: " + email
             );
             mailSender.send(mailMessage);
-            System.out.println("[EmailService] Письмо успешно отправлено на " + toEmail);
+            log.info("Email successfully sent to {} for contact from {}", toEmail, email);
         } catch (Exception e) {
-            System.err.println("[EmailService] Ошибка отправки письма: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to send email to {}: {}", toEmail, e.getMessage(), e);
+            // Не пробрасываем исключение, чтобы не ломать сохранение в файл
         }
     }
 }
