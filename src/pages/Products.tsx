@@ -77,9 +77,16 @@ const Products = () => {
               <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-square overflow-hidden">
                   <img
-                    src={product.imageUrl || productImages[product.name_en] || ''}
+                    src={productImages[product.name_en] || '/placeholder.svg'}
                     alt={language === 'en' ? product.name_en : product.name_es}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    onError={(e) => {
+                      // Fallback на placeholder если изображение не загрузилось
+                      const target = e.target as HTMLImageElement;
+                      if (target.src && !target.src.includes('placeholder')) {
+                        target.src = '/placeholder.svg';
+                      }
+                    }}
                   />
                 </div>
                 <CardContent className="p-6">
