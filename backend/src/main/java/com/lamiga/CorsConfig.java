@@ -16,9 +16,10 @@ public class CorsConfig {
                         .allowedOriginPatterns(
                                 "http://localhost:*",
                                 "https://*.vercel.app",
-                                "https://lamiga-bilingue-bakery-new.vercel.app"
+                                "https://lamiga-bilingue-bakery-new.vercel.app",
+                                "https://lamiga-bilingue-bakery-new-git-main-roz-maris-projects.vercel.app"
                         )
-                        .allowedMethods("GET", "POST", "OPTIONS")
+                        .allowedMethods("GET", "POST", "OPTIONS", "HEAD")
                         .allowedHeaders("*")
                         .allowCredentials(true)
                         .maxAge(3600);
