@@ -1,15 +1,17 @@
-// Получаем базовый URL и исправляем возможные ошибки
-const getApiBase = () => {
+// Get base URL and fix common errors
+const getApiBase = (): string => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (!envUrl) return 'http://localhost:8081';
   
   let url = envUrl.trim().replace(/\/$/, '');
   
-  // Исправляем распространённую ошибку: дефис в начале домена
+  // Fix common error: hyphen at the start of domain
   // la-miga-bilingue-bakery-2.onrender.com -> lamiga-bilingue-bakery-2.onrender.com
   if (url.includes('la-miga-bilingue-bakery-2.onrender.com')) {
     url = url.replace('la-miga-bilingue-bakery-2.onrender.com', 'lamiga-bilingue-bakery-2.onrender.com');
-    console.warn('[API] Fixed incorrect URL: removed hyphen from domain start');
+    if (import.meta.env.DEV) {
+      console.warn('[API] Fixed incorrect URL: removed hyphen from domain start');
+    }
   }
   
   return url;
@@ -17,10 +19,12 @@ const getApiBase = () => {
 
 const API_BASE = getApiBase();
 
-const buildUrl = (path: string) => {
+const buildUrl = (path: string): string => {
   const url = `${API_BASE}${path}`;
-  // Логируем всегда в продакшене для диагностики
-  console.log('[API] Request URL:', url, '| API_BASE:', API_BASE, '| VITE_API_URL:', import.meta.env.VITE_API_URL || 'NOT SET');
+  // Only log in development mode
+  if (import.meta.env.DEV) {
+    console.log('[API] Request URL:', url);
+  }
   return url;
 };
 
@@ -35,30 +39,47 @@ export type Product = {
 };
 
 export async function getProducts(): Promise<Product[]> {
+  const url = buildUrl('/api/products');
+  
   try {
-    const url = buildUrl('/api/products');
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(url, { 
+      cache: 'no-store',
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
     if (!res.ok) {
       throw new Error(`Failed to load products: ${res.status} ${res.statusText}`);
     }
+    
     return res.json();
   } catch (error) {
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      const apiUrl = buildUrl('/api/products');
-      const errorMsg = `Network error: Unable to reach API at ${apiUrl}. VITE_API_URL=${import.meta.env.VITE_API_URL || 'not set'}. Please check if the backend is running and VITE_API_URL is configured.`;
-      console.error('[API Error]', errorMsg);
+      const errorMsg = `Network error: Unable to reach API at ${url}. Please check if the backend is running and VITE_API_URL is configured.`;
+      if (import.meta.env.DEV) {
+        console.error('[API Error]', errorMsg, '| VITE_API_URL:', import.meta.env.VITE_API_URL || 'not set');
+      }
       throw new Error(errorMsg);
     }
     throw error;
   }
 }
 
-export async function sendContact(data: { name: string; email: string; message: string }) {
+export async function sendContact(data: { name: string; email: string; message: string }): Promise<boolean> {
   const res = await fetch(buildUrl('/api/contact'), {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    },
     body: JSON.stringify(data),
   });
-  if (!res.ok) throw new Error('Failed to send message');
+  
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || `Failed to send message: ${res.status} ${res.statusText}`);
+  }
+  
   return true;
 }

@@ -1,5 +1,6 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import sourdoughImg from '@/assets/sourdough.jpg';
@@ -9,13 +10,13 @@ import cookieImg from '@/assets/cookie.jpg';
 import cinnamonRollImg from '@/assets/cinnamon-roll.jpg';
 import { getProducts, type Product } from '@/lib/api';
 
-const productImages: Record<string, string> = {
+const PRODUCT_IMAGES: Record<string, string> = {
   'Sourdough Bread': sourdoughImg,
   'Croissant': croissantImg,
   'Baguette': baguetteImg,
   'Chocolate Chip Cookie': cookieImg,
   'Cinnamon Roll': cinnamonRollImg,
-};
+} as const;
 
 const Products = () => {
   const { language, t } = useLanguage();
@@ -24,7 +25,19 @@ const Products = () => {
     queryKey: ['products'],
     queryFn: getProducts,
     retry: 2,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
+
+  // Memoize product display logic
+  const getProductName = useMemo(() => 
+    (product: Product) => language === 'en' ? product.name_en : product.name_es,
+    [language]
+  );
+
+  const getProductDescription = useMemo(() => 
+    (product: Product) => language === 'en' ? product.description_en : product.description_es,
+    [language]
+  );
 
   return (
     <main className="py-16">
@@ -75,11 +88,12 @@ const Products = () => {
               <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-square overflow-hidden">
                   <img
-                    src={productImages[product.name_en] || '/placeholder.svg'}
-                    alt={language === 'en' ? product.name_en : product.name_es}
+                    src={PRODUCT_IMAGES[product.name_en] || '/placeholder.svg'}
+                    alt={getProductName(product)}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                    loading="lazy"
                     onError={(e) => {
-                      // Fallback на placeholder если изображение не загрузилось
+                      // Fallback to placeholder if image fails to load
                       const target = e.target as HTMLImageElement;
                       if (target.src && !target.src.includes('placeholder')) {
                         target.src = '/placeholder.svg';
@@ -89,10 +103,10 @@ const Products = () => {
                 </div>
                 <CardContent className="p-6">
                   <h3 className="font-playfair text-2xl font-semibold mb-2">
-                    {language === 'en' ? product.name_en : product.name_es}
+                    {getProductName(product)}
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    {language === 'en' ? product.description_en : product.description_es}
+                    {getProductDescription(product)}
                   </p>
                 </CardContent>
                 <CardFooter className="px-6 pb-6">

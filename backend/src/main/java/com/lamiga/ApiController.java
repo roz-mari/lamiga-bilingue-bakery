@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -26,12 +29,16 @@ import jakarta.validation.constraints.NotBlank;
 public class ApiController {
 
     private static final Logger log = LoggerFactory.getLogger(ApiController.class);
+    private static final Path CONTACT_STORE_PATH = Paths.get("data", "contact.jsonl");
+    
     private final ProductService service;
     private final EmailService emailService;
+    private final ObjectMapper objectMapper;
 
-    public ApiController(ProductService service, EmailService emailService) {
+    public ApiController(ProductService service, EmailService emailService, ObjectMapper objectMapper) {
         this.service = service;
         this.emailService = emailService;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping("/products")
@@ -73,25 +80,17 @@ public class ApiController {
     }
 
     private void saveToFile(ContactDTO dto) throws IOException {
-        Path store = Paths.get("data", "contact.jsonl");
-        Files.createDirectories(store.getParent());
-        String json = String.format(
-                "{\"ts\":\"%s\",\"name\":\"%s\",\"email\":\"%s\",\"message\":\"%s\"}%n",
-                java.time.Instant.now(),
-                escapeJson(dto.name()),
-                escapeJson(dto.email()),
-                escapeJson(dto.message())
-        );
-        Files.writeString(store, json, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        log.debug("Contact form saved to file: {}", store);
-    }
-
-    private String escapeJson(String value) {
-        if (value == null) return "";
-        return value.replace("\\", "\\\\")
-                    .replace("\"", "\\\"")
-                    .replace("\n", "\\n")
-                    .replace("\r", "\\r")
-                    .replace("\t", "\\t");
+        Files.createDirectories(CONTACT_STORE_PATH.getParent());
+        
+        // Use ObjectMapper for proper JSON serialization (more efficient and safer)
+        ObjectNode jsonNode = objectMapper.createObjectNode();
+        jsonNode.put("ts", java.time.Instant.now().toString());
+        jsonNode.put("name", dto.name());
+        jsonNode.put("email", dto.email());
+        jsonNode.put("message", dto.message());
+        
+        String json = objectMapper.writeValueAsString(jsonNode) + System.lineSeparator();
+        Files.writeString(CONTACT_STORE_PATH, json, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+        log.debug("Contact form saved to file: {}", CONTACT_STORE_PATH);
     }
 }
