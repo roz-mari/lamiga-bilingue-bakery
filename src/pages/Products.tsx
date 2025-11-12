@@ -1,6 +1,5 @@
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import sourdoughImg from '@/assets/sourdough.jpg';
@@ -19,19 +18,17 @@ const productImages: Record<string, string> = {
   'Whole Wheat Bread': wholeWheatImg,
 };
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8081';
+
 const Products = () => {
   const { language, t } = useLanguage();
 
-  const { data: products, isLoading } = useQuery({
+  const { data: products, isLoading, error } = useQuery({
     queryKey: ['products'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('created_at', { ascending: true });
-      
-      if (error) throw error;
-      return data;
+      const res = await fetch(`${API_BASE}/api/products`);
+      if (!res.ok) throw new Error('Failed to load products');
+      return res.json();
     },
   });
 
@@ -61,13 +58,15 @@ const Products = () => {
               </Card>
             ))}
           </div>
+        ) : error ? (
+          <div className="text-center text-red-600">{String(error)}</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products?.map((product) => (
+            {products?.map((product: any) => (
               <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-square overflow-hidden">
                   <img
-                    src={product.image_url || productImages[product.name_en]}
+                    src={product.imageUrl || productImages[product.name_en] || ''}
                     alt={language === 'en' ? product.name_en : product.name_es}
                     className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
                   />
@@ -82,7 +81,7 @@ const Products = () => {
                 </CardContent>
                 <CardFooter className="px-6 pb-6">
                   <p className="text-2xl font-semibold text-primary">
-                    ${product.price.toFixed(2)}
+                    €{product.price.toFixed(2)}
                   </p>
                 </CardFooter>
               </Card>
