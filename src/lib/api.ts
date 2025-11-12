@@ -2,7 +2,13 @@ const API_BASE =
   (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL.trim().replace(/\/$/, '')) ||
   'http://localhost:8081';
 
-const buildUrl = (path: string) => `${API_BASE}${path}`;
+const buildUrl = (path: string) => {
+  const url = `${API_BASE}${path}`;
+  if (import.meta.env.DEV) {
+    console.log('[API] Request URL:', url, '| API_BASE:', API_BASE);
+  }
+  return url;
+};
 
 export type Product = {
   id: number;
@@ -24,7 +30,10 @@ export async function getProducts(): Promise<Product[]> {
     return res.json();
   } catch (error) {
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      throw new Error(`Network error: Unable to reach API at ${buildUrl('/api/products')}. Please check if the backend is running.`);
+      const apiUrl = buildUrl('/api/products');
+      const errorMsg = `Network error: Unable to reach API at ${apiUrl}. VITE_API_URL=${import.meta.env.VITE_API_URL || 'not set'}. Please check if the backend is running and VITE_API_URL is configured.`;
+      console.error('[API Error]', errorMsg);
+      throw new Error(errorMsg);
     }
     throw error;
   }
