@@ -8,6 +8,7 @@ import baguetteImg from '@/assets/baguette.jpg';
 import cookieImg from '@/assets/cookie.jpg';
 import cinnamonRollImg from '@/assets/cinnamon-roll.jpg';
 import wholeWheatImg from '@/assets/whole-wheat.jpg';
+import { getProducts, type Product } from '@/lib/api';
 
 const productImages: Record<string, string> = {
   'Sourdough Bread': sourdoughImg,
@@ -18,18 +19,13 @@ const productImages: Record<string, string> = {
   'Whole Wheat Bread': wholeWheatImg,
 };
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8081';
-
 const Products = () => {
   const { language, t } = useLanguage();
 
   const { data: products, isLoading, error } = useQuery({
     queryKey: ['products'],
-    queryFn: async () => {
-      const res = await fetch(`${API_BASE}/api/products`);
-      if (!res.ok) throw new Error('Failed to load products');
-      return res.json();
-    },
+    queryFn: getProducts,
+    retry: 2,
   });
 
   return (
@@ -62,7 +58,7 @@ const Products = () => {
           <div className="text-center text-red-600">{String(error)}</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {products?.map((product: any) => (
+            {products?.map((product: Product) => (
               <Card key={product.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="aspect-square overflow-hidden">
                   <img
