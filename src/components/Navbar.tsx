@@ -32,8 +32,12 @@ const Navbar = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setLanguage(language === 'en' ? 'es' : 'en')}
+            onClick={() => {
+              const newLang = language === 'en' ? 'es' : 'en';
+              setLanguage(newLang);
+            }}
             className="flex items-center gap-2"
+            title={language === 'en' ? 'Switch to Spanish' : 'Cambiar a Inglés'}
           >
             <Globe className="w-4 h-4" />
             {language === 'en' ? 'ES' : 'EN'}
