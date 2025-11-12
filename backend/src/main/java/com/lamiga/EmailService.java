@@ -19,7 +19,6 @@ public class EmailService {
     private final String fromEmail;
     private final boolean enabled;
 
-    @Autowired(required = false)
     public EmailService(
             JavaMailSender mailSender,
             @Value("${contact.email.to:}") String toEmail,
@@ -29,7 +28,7 @@ public class EmailService {
         this.mailSender = mailSender;
         this.toEmail = toEmail != null ? toEmail.trim() : "";
         this.fromEmail = fromEmail != null ? fromEmail.trim() : "";
-        this.enabled = (mailSender != null) && enabled && !this.toEmail.isEmpty() && !this.fromEmail.isEmpty();
+        this.enabled = enabled && !this.toEmail.isEmpty() && !this.fromEmail.isEmpty();
         
         if (this.enabled) {
             log.info("EmailService initialized: emails will be sent to {}", this.toEmail);
