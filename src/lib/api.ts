@@ -15,9 +15,19 @@ export type Product = {
 };
 
 export async function getProducts(): Promise<Product[]> {
-  const res = await fetch(buildUrl('/api/products'), { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to load products');
-  return res.json();
+  try {
+    const url = buildUrl('/api/products');
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+      throw new Error(`Failed to load products: ${res.status} ${res.statusText}`);
+    }
+    return res.json();
+  } catch (error) {
+    if (error instanceof TypeError && error.message.includes('fetch')) {
+      throw new Error(`Network error: Unable to reach API at ${buildUrl('/api/products')}. Please check if the backend is running.`);
+    }
+    throw error;
+  }
 }
 
 export async function sendContact(data: { name: string; email: string; message: string }) {

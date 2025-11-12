@@ -55,7 +55,22 @@ const Products = () => {
             ))}
           </div>
         ) : error ? (
-          <div className="text-center text-red-600">{String(error)}</div>
+          <div className="text-center">
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6 max-w-2xl mx-auto">
+              <h3 className="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">
+                {t('Error loading products', 'Error al cargar productos')}
+              </h3>
+              <p className="text-red-600 dark:text-red-400 text-sm mb-4">
+                {error instanceof Error ? error.message : String(error)}
+              </p>
+              <p className="text-muted-foreground text-xs">
+                {t(
+                  'Please check your connection and try again later.',
+                  'Por favor, verifica tu conexión e inténtalo más tarde.'
+                )}
+              </p>
+            </div>
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {products?.map((product: Product) => (
